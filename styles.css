@@ -1,0 +1,103 @@
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding: 20px;
+  width: 320px;
+  background-color: #f9f9f9;
+  color: #333;
+}
+
+h1 {
+  font-size: 20px;
+  margin-bottom: 15px;
+  color: #222;
+}
+
+#promptList {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 20px;
+}
+
+#promptList li {
+  background: #ffffff;
+  margin: 8px 0;
+  padding: 10px 40px 10px 12px; /* leave space on right for the X */
+  border-radius: 8px;
+  position: relative;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  word-break: break-word;
+  transition: background 0.2s;
+  display: block;
+}
+
+#promptList li:hover {
+  background: #f0f0f0;
+}
+
+.delete {
+  position: absolute;
+  right: 10px;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: red;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  width: auto;
+  height: auto;
+}
+
+textarea,
+input[type="text"] {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+  font-size: 14px;
+  resize: vertical;
+  background-color: #fff;
+  transition: border-color 0.2s;
+}
+
+textarea:focus,
+input[type="text"]:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  background-color: #007bff;
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+.prompt-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.export-section,
+.import-section {
+  flex: 1;
+}
+
+.import-section input[type="file"] {
+  width: 100%;
+  margin: 5px 0;
+}

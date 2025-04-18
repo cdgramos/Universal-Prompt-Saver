@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Manage Prompts</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <h1>Saved Prompts</h1>
+    <ul id="promptList"></ul>
+
+    <input type="text" id="newTitle" placeholder="Title">
+    <textarea id="newPrompt" placeholder="Enter your prompt"></textarea>
+    <button id="savePrompt">Save Prompt</button>
+    <br><br>
+    <hr>
+
+    <div class="prompt-actions">
+      <div class="export-section">
+        <button id="exportPrompts">Export Prompts</button>
+      </div>
+      <div class="import-section">
+        <button id="importPrompts">Import Prompts</button>
+        <input type="file" id="importFile" accept=".json">
+      </div>
+    </div>
+
+  <script src="popup.js"></script>
+  </body>
+</html>
