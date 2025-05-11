@@ -35,7 +35,8 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
           const el = document.activeElement;
           if (el && (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT' || el.isContentEditable)) {
             if (el.isContentEditable) {
-              document.execCommand('insertText', false, promptText);
+              el.focus();
+              document.execCommand('insertHTML', false, promptText);
             } else {
               el.focus();
               const start = el.selectionStart;

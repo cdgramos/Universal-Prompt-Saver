@@ -36,4 +36,4 @@ Manual install:
 
 ## Change Log
 * 18-04-2025 - Release - Initial Public Release
-
+* 09-05-2025 - 1.1 - Added the hability to paste rich text - HTML
