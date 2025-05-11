@@ -35,8 +35,21 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
           const el = document.activeElement;
           if (el && (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT' || el.isContentEditable)) {
             if (el.isContentEditable) {
+
               el.focus();
-              document.execCommand('insertHTML', false, promptText);
+              //document.execCommand('insertText', false, promptText);
+
+              navigator.clipboard.writeText(promptText).then(() => {
+              const pasteEvent = new ClipboardEvent("paste", {
+                clipboardData: new DataTransfer(),
+                bubbles: true,
+                cancelable: true,
+              });
+
+              pasteEvent.clipboardData.setData("text/plain", promptText);
+              el.dispatchEvent(pasteEvent);
+              });
+
             } else {
               el.focus();
               const start = el.selectionStart;
