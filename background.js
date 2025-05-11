@@ -37,7 +37,6 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
             if (el.isContentEditable) {
 
               el.focus();
-              //document.execCommand('insertText', false, promptText);
 
               navigator.clipboard.writeText(promptText).then(() => {
               const pasteEvent = new ClipboardEvent("paste", {
