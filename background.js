@@ -34,23 +34,49 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
         func: (promptText) => {
           const el = document.activeElement;
           if (el && (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT' || el.isContentEditable)) {
+            
+            el.focus();
+
             if (el.isContentEditable) {
 
-              el.focus();
-
-              navigator.clipboard.writeText(promptText).then(() => {
               const pasteEvent = new ClipboardEvent("paste", {
                 clipboardData: new DataTransfer(),
                 bubbles: true,
                 cancelable: true,
               });
 
+
+              const html = promptText
+                  .split(/\n{2,}/) // Split into paragraphs (2+ newlines)
+                  .map(para => {
+                    // Trim the paragraph to avoid leading/trailing whitespace issues
+                    const trimmed = para.trim();
+                
+                    // Check if it's a Markdown heading
+                    if (/^### /.test(trimmed)) {
+                      return trimmed.replace(/^### (.*)$/gm, '<h3>$1</h3>');
+                    } else if (/^## /.test(trimmed)) {
+                      return trimmed.replace(/^## (.*)$/gm, '<h2>$1</h2>');
+                    } else if (/^# /.test(trimmed)) {
+                      return trimmed.replace(/^# (.*)$/gm, '<h1>$1</h1>');
+                    } else {
+                      // Otherwise, treat it as a normal paragraph
+                      return `<p>${trimmed
+                        .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+                        .replace(/\*(.*?)\*/g, '<i>$1</i>')
+                        .replace(/\n/g, '<br>')}</p>`;
+                    }
+                  })
+                  .join('');  
+
+              pasteEvent.clipboardData.setData("text/html", html);
               pasteEvent.clipboardData.setData("text/plain", promptText);
+
               el.dispatchEvent(pasteEvent);
-              });
+
 
             } else {
-              el.focus();
+ 
               const start = el.selectionStart;
               const end = el.selectionEnd;
               el.value = el.value.slice(0, start) + promptText + el.value.slice(end);
