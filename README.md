@@ -36,6 +36,7 @@ Manual install:
 
 ## Change Log
 * 18-04-2025 - Release - Initial Public Release
-* 09-05-2025 - 1.1 - Added the hability to paste rich text - HTML
-* 11-05-2025 - 1.2 - Support for markdown
-* 20-05-2025 - 1.3 - Better support for markdown on Jira, text doesn't go into the clipboard anymore
+* 09-05-2025 - 1.1: Added the hability to paste rich text - HTML
+* 11-05-2025 - 1.2: Support for markdown
+* 20-05-2025 - 1.3: Better support for markdown on Jira, text doesn't go into the clipboard anymore
+* 22-05-2025 - 1.4: Added edit function, version number at the bottom, confirmation popup for delete actions, and preserved line breaks at the end of prompts
