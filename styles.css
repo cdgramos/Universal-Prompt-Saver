@@ -125,3 +125,17 @@ button:hover {
   color: #888;
   user-select: none;
 }
+
+.delete,
+.edit {
+  /* make sure there’s some padding or explicit size */
+  padding: 3px;
+  border-radius: 15px;
+  transition: background-color 0.4s, color 0.4s;
+}
+
+.delete:hover,
+.edit:hover {
+  background-color: #0056b3;
+  color: #fff;           /* so your icon (or “×”) turns visible on the blue */
+}

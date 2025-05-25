@@ -40,3 +40,4 @@ Manual install:
 * 11-05-2025 - 1.2: Support for markdown
 * 20-05-2025 - 1.3: Better support for markdown on Jira, text doesn't go into the clipboard anymore
 * 22-05-2025 - 1.4: Added edit function, version number at the bottom, confirmation popup for delete actions, and preserved line breaks at the end of prompts
+* 25-05-2025 - 1.5: Minor UI improvement
