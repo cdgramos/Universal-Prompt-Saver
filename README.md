@@ -8,6 +8,10 @@ Chrome extension to save prompts and quickly insert them anywhere with a right-c
 Save frequently used prompts with custom titles and manage them through a user-friendly popup UI.
 
 
+### Folders & Nested Menus
+Organize prompts into folders in the popup UI. Right-click shows a nested menu: Folder → Prompt.
+
+
 ### Right-click to paste  
 Easily insert saved prompts into any input field or editable area directly from the right-click context menu.
 
@@ -41,3 +45,4 @@ Manual install:
 * 20-05-2025 - 1.3: Better support for markdown on Jira, text doesn't go into the clipboard anymore
 * 22-05-2025 - 1.4: Added edit function, version number at the bottom, confirmation popup for delete actions, and preserved line breaks at the end of prompts
 * 25-05-2025 - 1.5: Minor UI improvement
+* 18-09-2025 - 1.6: Added Folders & Nested Menus
