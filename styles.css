@@ -139,3 +139,129 @@ button:hover {
   background-color: #0056b3;
   color: #fff;           /* so your icon (or “×”) turns visible on the blue */
 }
+
+
+/* Folder UI */
+.form {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.folder-section { margin: 8px 0 12px; }
+.folder-header {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: #555;
+  margin: 10px 0 6px;
+  border-bottom: 1px solid #e6e6e6;
+  padding-bottom: 4px;
+}
+
+.prompt-list { list-style: none; padding: 0; margin: 0; }
+.prompt-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  margin-bottom: 6px;
+}
+
+.prompt-title { font-weight: 500; }
+
+.row-actions button {
+  margin-left: 6px;
+}
+
+
+/* Emoji buttons look better square and subtle */
+.row-actions button.edit,
+.row-actions button.delete {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* Remove any leftover spacing for the removed copy button */
+.row-actions button { margin-left: 6px; }
+
+
+/* --- Alignment fix for emoji action buttons --- */
+.prompt-row {
+  display: flex;
+  align-items: center;     /* vertical center everything */
+  gap: 8px;
+}
+
+.prompt-title {
+  flex: 1 1 auto;          /* take remaining width; pushes actions to the right */
+  display: block;
+}
+
+.row-actions {
+  display: inline-flex;     /* keep buttons on the same baseline container */
+  align-items: center;      /* vertical center inside the container */
+  gap: 6px;
+  height: 32px;             /* match button height to avoid jitter */
+}
+
+.row-actions button {
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  line-height: 1;          /* prevent extra vertical space */
+  font-size: 18px;         /* consistent emoji size */
+  transform: translateY(0);/* ensure no subpixel shift */
+}
+
+.row-actions button.edit { /* optional subtle color cue */
+  filter: hue-rotate(0deg) saturate(1);
+}
+
+.row-actions button.delete {
+  filter: hue-rotate(0deg) saturate(1);
+}
+
+
+/* --- Offset actions 32px from the right, keep vertical center --- */
+.prompt-row {
+  position: relative;
+  padding-right: 54px; /* room for 2x32px buttons + gap */
+}
+
+.row-actions {
+  position: absolute;
+  right: 0px;          /* shift left ~32px from the card edge */
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Subtle hover affordance */
+.row-actions button {
+  border-radius: 50%;
+  transition: background-color .15s ease, transform .12s ease;
+}
+.row-actions button:hover {
+  background-color: rgba(0,0,0,0.06);
+  transform: translateY(0) scale(1.06);
+}
+.row-actions button:active {
+  transform: translateY(0) scale(0.98);
+}

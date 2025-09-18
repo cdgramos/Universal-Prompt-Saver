@@ -1,93 +1,165 @@
+/* background.js - folder-aware context menus + auto-date tokens */
+
+// Token expansion (auto-date/time + simple user info hooks if needed later)
+function expandTokens(text) {
+  const now = new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  const yyyy = now.getFullYear();
+  const mm = pad(now.getMonth() + 1);
+  const dd = pad(now.getDate());
+  const hh = pad(now.getHours());
+  const min = pad(now.getMinutes());
+  const ss = pad(now.getSeconds());
+  const weekdays = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+  const replacements = {
+    '{{date}}': `${yyyy}-${mm}-${dd}`,
+    '{{time}}': `${hh}:${min}`,
+    '{{seconds}}': `${ss}`,
+    '{{datetime}}': `${yyyy}-${mm}-${dd} ${hh}:${min}`,
+    '{{iso}}': now.toISOString(),
+    '{{weekday}}': weekdays[now.getDay()],
+  };
+
+  return text.replace(/\{\{(date|time|seconds|datetime|iso|weekday)\}\}/g, (m) => replacements[m] || m);
+}
+
+// ---- Context Menu Builder ----
+const ROOT_MENU_ID = 'ups-root';
+
 function createContextMenus(prompts) {
   chrome.contextMenus.removeAll(() => {
-    prompts.forEach((prompt, index) => {
+    // Create a single root item
+    chrome.contextMenus.create({
+      id: ROOT_MENU_ID,
+      title: 'Universal Prompt Saver',
+      contexts: ['editable']
+    });
+
+    // Group by folder (default to 'Ungrouped')
+    const groups = {};
+    prompts.forEach((p, idx) => {
+      const folder = (p.folder && p.folder.trim()) ? p.folder.trim() : 'Ungrouped';
+      if (!groups[folder]) groups[folder] = [];
+      groups[folder].push({...p, __index: idx});
+    });
+
+    // For each folder, create submenu and items
+    Object.keys(groups).sort((a,b)=>a.localeCompare(b)).forEach(folder => {
+      const folderId = `ups-folder-${folder}`;
       chrome.contextMenus.create({
-        id: `prompt-${index}`,
-        title: prompt.title,
-        contexts: ["editable"]
+        id: folderId,
+        parentId: ROOT_MENU_ID,
+        title: folder,
+        contexts: ['editable']
+      });
+
+      groups[folder].forEach(item => {
+        chrome.contextMenus.create({
+          id: `ups-prompt-${item.__index}`,
+          parentId: folderId,
+          title: item.title || '(untitled)',
+          contexts: ['editable']
+        });
       });
     });
   });
 }
 
-chrome.runtime.onInstalled.addListener(() => {
+// Initialize menus on install / startup
+function initMenus() {
   chrome.storage.sync.get({ prompts: [] }, (data) => {
-    createContextMenus(data.prompts);
+    const normalized = Array.isArray(data.prompts) ? data.prompts : [];
+    createContextMenus(normalized);
   });
-});
+}
+chrome.runtime.onInstalled.addListener(initMenus);
+chrome.runtime.onStartup.addListener(initMenus);
 
+// Listen to messages from popup to update menus live
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  if (msg.type === 'updatePrompts') {
-    createContextMenus(msg.prompts);
+  if (msg && msg.type === 'updatePrompts') {
+    const prompts = Array.isArray(msg.prompts) ? msg.prompts : [];
+    createContextMenus(prompts);
+    sendResponse({ ok: true });
   }
 });
 
+// Context menu click -> inject text into active editable (input/textarea/contenteditable)
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-  const id = info.menuItemId;
+  if (!info.menuItemId || typeof info.menuItemId !== 'string') return;
+  const m = info.menuItemId.match(/^ups-prompt-(\d+)$/);
+  if (!m) return;
+  const index = parseInt(m[1], 10);
+
   chrome.storage.sync.get({ prompts: [] }, (data) => {
-    const index = parseInt(id.split('-')[1]);
-    const prompt = data.prompts[index];
-    if (prompt) {
-      chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        args: [String(prompt.prompt)],
-        func: (promptText) => {
-          const el = document.activeElement;
-          if (el && (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT' || el.isContentEditable)) {
-            
-            el.focus();
+    const list = Array.isArray(data.prompts) ? data.prompts : [];
+    const chosen = list[index];
+    if (!chosen) return;
+    const expanded = expandTokens(chosen.prompt || '');
 
-            if (el.isContentEditable) {
+    chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: (textToInsert) => {
+        // Try focused element first
+        const active = document.activeElement;
 
-              const pasteEvent = new ClipboardEvent("paste", {
-                clipboardData: new DataTransfer(),
-                bubbles: true,
-                cancelable: true,
-              });
+        const insertAtCursor = (el, txt) => {
+          if (typeof el.selectionStart === 'number') {
+            const start = el.selectionStart;
+            const end = el.selectionEnd;
+            const before = el.value.slice(0, start);
+            const after = el.value.slice(end);
+            el.value = before + txt + after;
+            const newPos = start + txt.length;
+            el.selectionStart = el.selectionEnd = newPos;
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            return true;
+          }
+          return false;
+        };
 
+        const insertIntoContentEditable = (txt) => {
+          const sel = window.getSelection();
+          if (!sel || sel.rangeCount === 0) return false;
+          const range = sel.getRangeAt(0);
+          range.deleteContents();
+          const node = document.createTextNode(txt);
+          range.insertNode(node);
+          // move caret to end
+          range.setStartAfter(node);
+          range.setEndAfter(node);
+          sel.removeAllRanges();
+          sel.addRange(range);
+          return true;
+        };
 
-              const html = promptText
-                  .split(/\n{2,}/) // Split into paragraphs (2+ newlines)
-                  .map(para => {
-                    // Trim the paragraph to avoid leading/trailing whitespace issues
-                    const trimmed = para.trim();
-                
-                    // Check if it's a Markdown heading
-                    if (/^### /.test(trimmed)) {
-                      return trimmed.replace(/^### (.*)$/gm, '<h3>$1</h3>');
-                    } else if (/^## /.test(trimmed)) {
-                      return trimmed.replace(/^## (.*)$/gm, '<h2>$1</h2>');
-                    } else if (/^# /.test(trimmed)) {
-                      return trimmed.replace(/^# (.*)$/gm, '<h1>$1</h1>');
-                    } else {
-                      // Otherwise, treat it as a normal paragraph
-                      return `<p>${trimmed
-                        .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
-                        .replace(/\*(.*?)\*/g, '<i>$1</i>')
-                        .replace(/\n/g, '<br>')}</p>`;
-                    }
-                  })
-                  .join('');  
+        const isEditable = (el) =>
+          el && (el.tagName === 'TEXTAREA' ||
+                 (el.tagName === 'INPUT' && /^(text|search|email|tel|url|password|number)$/i.test(el.type)) ||
+                 el.isContentEditable);
 
-              pasteEvent.clipboardData.setData("text/html", html);
-              pasteEvent.clipboardData.setData("text/plain", promptText);
-
-              el.dispatchEvent(pasteEvent);
-
-
+        if (isEditable(active)) {
+          if (active.isContentEditable) {
+            if (!insertIntoContentEditable(textToInsert)) alert('Could not insert into contenteditable element.');
+          } else {
+            if (!insertAtCursor(active, textToInsert)) alert('Could not insert into input/textarea.');
+          }
+        } else {
+          // Try to find any focused contenteditable as fallback
+          const anyEditable = document.querySelector('textarea:focus, input:focus, [contenteditable="true"]:focus, [contenteditable="plaintext-only"]:focus');
+          if (anyEditable) {
+            if (anyEditable.isContentEditable) {
+              if (!insertIntoContentEditable(textToInsert)) alert('Could not insert into contenteditable element.');
             } else {
- 
-              const start = el.selectionStart;
-              const end = el.selectionEnd;
-              el.value = el.value.slice(0, start) + promptText + el.value.slice(end);
-              el.selectionStart = el.selectionEnd = start + promptText.length;
-              el.dispatchEvent(new Event('input', { bubbles: true }));
+              if (!insertAtCursor(anyEditable, textToInsert)) alert('Could not insert into input/textarea.');
             }
           } else {
             alert('No active input or editable field to insert the prompt.');
           }
         }
-      });
-    }
+      },
+      args: [expanded]
+    });
   });
 });

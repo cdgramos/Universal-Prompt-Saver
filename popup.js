@@ -1,81 +1,198 @@
-const promptList = document.getElementById('promptList');
-const savePrompt = document.getElementById('savePrompt');
+/* popup.js - folder-aware UI + import/export + auto-date tokens (fixed edit flow, emoji buttons) */
+
+const groupedList = document.getElementById('groupedList');
+const savePromptBtn = document.getElementById('savePrompt');
 const newPrompt = document.getElementById('newPrompt');
 const newTitle = document.getElementById('newTitle');
+const newFolder = document.getElementById('newFolder');
 const exportPrompts = document.getElementById('exportPrompts');
 const importPrompts = document.getElementById('importPrompts');
 const importFile = document.getElementById('importFile');
+const folderSuggestions = document.getElementById('folderSuggestions');
 
-function renderPrompts(prompts) {
-  promptList.innerHTML = '';
-  prompts.forEach((promptObj, index) => {
-    const li = document.createElement('li');
-    li.textContent = promptObj.title;
+const DEFAULT_FOLDER = 'Ungrouped';
 
-    // Edit button
-    const editBtn = document.createElement('button');
-    editBtn.textContent = '✏️';
-    editBtn.className = 'edit';
-    editBtn.addEventListener('click', () => {
-      newTitle.value = promptObj.title;
-      newPrompt.value = promptObj.prompt;
-      savePrompt.dataset.editingIndex = index;  // store index being edited
-      savePrompt.textContent = 'Update Prompt';
-    });
+let editingIndex = null;   // null means "creating", number means "editing existing"
 
-    // Delete button
-    const delBtn = document.createElement('button');
-    delBtn.textContent = '❌';
-    delBtn.className = 'delete';
-    delBtn.addEventListener('click', () => {
-      // Add confirmation dialog here
-      if (confirm(`Are you sure you want to delete the prompt "${promptObj.title}"? This action cannot be undone.`)) {
-        prompts.splice(index, 1);
-        chrome.storage.sync.set({ prompts }, () => {
-          chrome.runtime.sendMessage({ type: 'updatePrompts', prompts });
-          renderPrompts(prompts);
-        });
-      }
-    });
+const normalizeFolder = (f) => {
+  const v = (f || '').trim();
+  if (!v) return DEFAULT_FOLDER;
+  if (v.toLowerCase() === 'ungrouped') return DEFAULT_FOLDER;
+  return v;
+};
 
-    li.appendChild(editBtn);
-    li.appendChild(delBtn);
-    promptList.appendChild(li);
+function normalizePrompt(p) {
+  return {
+    title: (p.title || '').trim(),
+    prompt: (p.prompt || ''),
+    folder: normalizeFolder(p.folder)
+  };
+}
+
+function groupByFolder(prompts) {
+  const groups = {};
+  prompts.forEach(p => {
+    const g = normalizeFolder(p.folder);
+    if (!groups[g]) groups[g] = [];
+    groups[g].push(p);
+  });
+  Object.keys(groups).forEach(k => groups[k].sort((a,b)=>a.title.localeCompare(b.title)));
+  return groups;
+}
+
+function refreshFolderSuggestions(prompts) {
+  const set = new Set(prompts.map(p => normalizeFolder(p.folder)));
+  set.add(DEFAULT_FOLDER);
+  folderSuggestions.innerHTML = '';
+  Array.from(set).sort((a,b)=>a.localeCompare(b)).forEach(f => {
+    const opt = document.createElement('option');
+    opt.value = f;
+    folderSuggestions.appendChild(opt);
   });
 }
 
-savePrompt.addEventListener('click', () => {
-  const title = newTitle.value.trim();
-  const text = newPrompt.value;
-  if (!title || !text) return;
+function renderPrompts(prompts) {
+  groupedList.innerHTML = '';
+  const groups = groupByFolder(prompts);
+  const sortedFolders = Object.keys(groups).sort((a,b)=>a.localeCompare(b));
 
-  chrome.storage.sync.get(['prompts'], result => {
-    const prompts = result.prompts || [];
-    const editingIndex = savePrompt.dataset.editingIndex;
+  sortedFolders.forEach(folder => {
+    const section = document.createElement('section');
+    section.className = 'folder-section';
+    const header = document.createElement('h2');
+    header.className = 'folder-header';
+    header.textContent = folder;
+    section.appendChild(header);
 
-    if (editingIndex !== undefined) {
-      // Update existing prompt
-      prompts[editingIndex] = { title, prompt: text };
-      delete savePrompt.dataset.editingIndex;
-      savePrompt.textContent = 'Save Prompt';
-    } else {
-      // Add new prompt
-      prompts.push({ title, prompt: text });
-    }
+    const ul = document.createElement('ul');
+    ul.className = 'prompt-list';
+    groups[folder].forEach((p) => {
+      const li = document.createElement('li');
+      li.className = 'prompt-row';
 
-    chrome.storage.sync.set({ prompts }, () => {
-      chrome.runtime.sendMessage({ type: 'updatePrompts', prompts });
-      renderPrompts(prompts);
-      newTitle.value = '';
-      newPrompt.value = '';
+      const title = document.createElement('span');
+      title.className = 'prompt-title';
+      title.textContent = p.title || '(untitled)';
+      li.appendChild(title);
+
+      const actions = document.createElement('div');
+      actions.className = 'row-actions';
+
+      const editBtn = document.createElement('button');
+      editBtn.className = 'edit';
+      editBtn.title = 'Edit prompt';
+      editBtn.textContent = '✏️';
+      editBtn.addEventListener('click', () => startEdit(p));
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'delete';
+      delBtn.title = 'Delete prompt';
+      delBtn.textContent = '❌';
+      delBtn.addEventListener('click', () => deletePrompt(p));
+
+      actions.appendChild(editBtn);
+      actions.appendChild(delBtn);
+      li.appendChild(actions);
+      ul.appendChild(li);
     });
+
+    section.appendChild(ul);
+    groupedList.appendChild(section);
   });
-});
+
+  refreshFolderSuggestions(prompts);
+}
+
+function loadPrompts() {
+  chrome.storage.sync.get({ prompts: [] }, (data) => {
+    const list = (Array.isArray(data.prompts) ? data.prompts : []).map(normalizePrompt);
+    renderPrompts(list);
+  });
+}
+
+function savePrompts(list) {
+  const normalized = list.map(normalizePrompt);
+  chrome.storage.sync.set({ prompts: normalized }, () => {
+    renderPrompts(normalized);
+    chrome.runtime.sendMessage({ type: 'updatePrompts', prompts: normalized });
+  });
+}
+
+function handleSaveClick(e) {
+  e.preventDefault();
+  const title = newTitle.value.trim();
+  const folder = normalizeFolder(newFolder.value);
+  const prompt = newPrompt.value;
+  if (!title) {
+    alert('Please enter a title.');
+    return;
+  }
+
+  chrome.storage.sync.get({ prompts: [] }, (data) => {
+    const list = Array.isArray(data.prompts) ? data.prompts : [];
+
+    if (editingIndex === null) {
+      // Create new
+      list.push({ title, prompt, folder });
+    } else {
+      // Update existing
+      list[editingIndex] = { title, prompt, folder };
+    }
+    savePrompts(list);
+    resetForm();
+  });
+}
+
+function resetForm() {
+  editingIndex = null;
+  newTitle.value = '';
+  newFolder.value = '';
+  newPrompt.value = '';
+  savePromptBtn.textContent = 'Save Prompt';
+}
+
+function startEdit(p) {
+  chrome.storage.sync.get({ prompts: [] }, (data) => {
+    const list = Array.isArray(data.prompts) ? data.prompts : [];
+    const idx = list.findIndex(x =>
+      (x.title || '') === (p.title || '') &&
+      (x.prompt || '') === (p.prompt || '') &&
+      normalizeFolder(x.folder) === normalizeFolder(p.folder)
+    );
+    if (idx < 0) return;
+
+    editingIndex = idx;
+    newTitle.value = p.title || '';
+    newFolder.value = normalizeFolder(p.folder);
+    newPrompt.value = p.prompt || '';
+    savePromptBtn.textContent = 'Update Prompt';
+    refreshFolderSuggestions(list.map(normalizePrompt)); // ensure folders dropdown is fresh while editing
+  });
+}
+
+function deletePrompt(p) {
+  if (!confirm(`Delete "${p.title}"?`)) return;
+  chrome.storage.sync.get({ prompts: [] }, (data) => {
+    let list = Array.isArray(data.prompts) ? data.prompts : [];
+    const idx = list.findIndex(x =>
+      (x.title || '') === (p.title || '') &&
+      (x.prompt || '') === (p.prompt || '') &&
+      normalizeFolder(x.folder) === normalizeFolder(p.folder)
+    );
+    if (idx >= 0) {
+      list.splice(idx, 1);
+      savePrompts(list);
+    }
+    if (editingIndex === idx) resetForm();
+  });
+}
+
+savePromptBtn.addEventListener('click', handleSaveClick);
 
 exportPrompts.addEventListener('click', () => {
-  chrome.storage.sync.get(['prompts'], result => {
-    const dataStr = JSON.stringify(result.prompts || [], null, 2);
-    const blob = new Blob([dataStr], { type: 'application/json' });
+  chrome.storage.sync.get({ prompts: [] }, (data) => {
+    const out = (Array.isArray(data.prompts) ? data.prompts : []).map(normalizePrompt);
+    const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -85,20 +202,19 @@ exportPrompts.addEventListener('click', () => {
   });
 });
 
-importPrompts.addEventListener('click', () => {
+importPrompts.addEventListener('click', () => importFile.click());
+importFile.addEventListener('change', () => {
   const file = importFile.files[0];
   if (!file) return;
-
   const reader = new FileReader();
   reader.onload = () => {
     try {
-      const importedPrompts = JSON.parse(reader.result);
-      if (Array.isArray(importedPrompts)) {
-        chrome.storage.sync.set({ prompts: importedPrompts }, () => {
-          chrome.runtime.sendMessage({ type: 'updatePrompts', prompts: importedPrompts });
-          renderPrompts(importedPrompts);
-        });
-      }
+      const json = JSON.parse(reader.result);
+      if (!Array.isArray(json)) throw new Error('Invalid JSON format.');
+      const list = json.map(normalizePrompt);
+      savePrompts(list);
+      importFile.value = '';
+      resetForm();
     } catch (e) {
       alert('Invalid JSON file.');
     }
@@ -106,12 +222,10 @@ importPrompts.addEventListener('click', () => {
   reader.readAsText(file);
 });
 
-chrome.storage.sync.get(['prompts'], result => {
-  renderPrompts(result.prompts || []);
-});
-
 document.addEventListener('DOMContentLoaded', () => {
   const versionElement = document.getElementById('appVersion');
   const manifestData = chrome.runtime.getManifest();
   versionElement.textContent = `v${manifestData.version}`;
 });
+
+loadPrompts();

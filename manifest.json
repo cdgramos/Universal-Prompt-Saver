@@ -1,7 +1,7 @@
 {
-  "manifest_version": 3,
+  "manifest_version": 4,
   "name": "Universal Prompt Saver",
-  "version": "1.5",
+  "version": "1.6",
   "description": "Save prompts and insert them anywhere with a right-click.",
   "permissions": [
     "contextMenus",
