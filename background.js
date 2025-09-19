@@ -123,14 +123,27 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
           const sel = window.getSelection();
           if (!sel || sel.rangeCount === 0) return false;
           const range = sel.getRangeAt(0);
+
+          // Escape HTML, then convert newlines to <br> so formatting is preserved
+          const escape = (s) => s
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+
+          const html = escape(String(txt)).replace(/\r\n|\r|\n/g, '<br>');
+
+          // Prefer execCommand (works well in many rich editors, including ChatGPT)
+          const ok = document.execCommand && document.execCommand('insertHTML', false, html);
+          if (ok) return true;
+
+          // Fallback: Range API
+          const tpl = document.createElement('template');
+          tpl.innerHTML = html;
+          const frag = tpl.content.cloneNode(true);
           range.deleteContents();
-          const node = document.createTextNode(txt);
-          range.insertNode(node);
-          // move caret to end
-          range.setStartAfter(node);
-          range.setEndAfter(node);
-          sel.removeAllRanges();
-          sel.addRange(range);
+          range.insertNode(frag);
           return true;
         };
 

@@ -46,3 +46,4 @@ Manual install:
 * 22-05-2025 - 1.4: Added edit function, version number at the bottom, confirmation popup for delete actions, and preserved line breaks at the end of prompts
 * 25-05-2025 - 1.5: Minor UI improvement
 * 18-09-2025 - 1.6: Added Folders & Nested Menus
+* 19-09-2025 - 1.7: Breakline bug fixed
