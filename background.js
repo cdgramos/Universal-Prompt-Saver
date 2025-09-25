@@ -68,7 +68,7 @@ function createContextMenus(prompts) {
 
 // init / live update
 function initMenus() {
-  chrome.storage.sync.get({ prompts: [] }, ({ prompts }) => createContextMenus(prompts));
+  chrome.storage.local.get({ prompts: [] }, ({ prompts }) => createContextMenus(prompts));
 }
 chrome.runtime.onInstalled.addListener(initMenus);
 chrome.runtime.onStartup.addListener(initMenus);
@@ -85,7 +85,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (!m) return;
 
   const index = parseInt(m[1], 10);
-  chrome.storage.sync.get({ prompts: [] }, ({ prompts }) => {
+  chrome.storage.local.get({ prompts: [] }, ({ prompts }) => {
     const item = (Array.isArray(prompts) ? prompts : [])[index];
     if (!item) return;
 

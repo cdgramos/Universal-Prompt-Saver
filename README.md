@@ -48,3 +48,4 @@ Manual install:
 * 18-09-2025 - 1.6: Added Folders & Nested Menus
 * 19-09-2025 - 1.7: Breakline bug fixed
 * 20-09-2025 - 1.8: Jira/markdown paste bug fixed
+* 25-09-2025 - 1.9: Moved from sync storage to local storage (sync has a size limit "kQuotaBytesPerItem", which limits the number and size of the prompts). Removed folder name capitalization from the popup.

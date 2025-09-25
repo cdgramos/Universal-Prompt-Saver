@@ -151,7 +151,6 @@ button:hover {
 .folder-section { margin: 8px 0 12px; }
 .folder-header {
   font-size: 13px;
-  text-transform: uppercase;
   letter-spacing: .06em;
   color: #555;
   margin: 10px 0 6px;

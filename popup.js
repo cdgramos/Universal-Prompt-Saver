@@ -104,7 +104,7 @@ function renderPrompts(prompts) {
 }
 
 function loadPrompts() {
-  chrome.storage.sync.get({ prompts: [] }, (data) => {
+  chrome.storage.local.get({ prompts: [] }, (data) => {
     const list = (Array.isArray(data.prompts) ? data.prompts : []).map(normalizePrompt);
     renderPrompts(list);
   });
@@ -112,7 +112,7 @@ function loadPrompts() {
 
 function savePrompts(list) {
   const normalized = list.map(normalizePrompt);
-  chrome.storage.sync.set({ prompts: normalized }, () => {
+  chrome.storage.local.set({ prompts: normalized }, () => {
     renderPrompts(normalized);
     chrome.runtime.sendMessage({ type: 'updatePrompts', prompts: normalized });
   });
@@ -128,7 +128,7 @@ function handleSaveClick(e) {
     return;
   }
 
-  chrome.storage.sync.get({ prompts: [] }, (data) => {
+  chrome.storage.local.get({ prompts: [] }, (data) => {
     const list = Array.isArray(data.prompts) ? data.prompts : [];
 
     if (editingIndex === null) {
@@ -152,7 +152,7 @@ function resetForm() {
 }
 
 function startEdit(p) {
-  chrome.storage.sync.get({ prompts: [] }, (data) => {
+  chrome.storage.local.get({ prompts: [] }, (data) => {
     const list = Array.isArray(data.prompts) ? data.prompts : [];
     const idx = list.findIndex(x =>
       (x.title || '') === (p.title || '') &&
@@ -172,7 +172,7 @@ function startEdit(p) {
 
 function deletePrompt(p) {
   if (!confirm(`Delete "${p.title}"?`)) return;
-  chrome.storage.sync.get({ prompts: [] }, (data) => {
+  chrome.storage.local.get({ prompts: [] }, (data) => {
     let list = Array.isArray(data.prompts) ? data.prompts : [];
     const idx = list.findIndex(x =>
       (x.title || '') === (p.title || '') &&
@@ -190,7 +190,7 @@ function deletePrompt(p) {
 savePromptBtn.addEventListener('click', handleSaveClick);
 
 exportPrompts.addEventListener('click', () => {
-  chrome.storage.sync.get({ prompts: [] }, (data) => {
+  chrome.storage.local.get({ prompts: [] }, (data) => {
     const out = (Array.isArray(data.prompts) ? data.prompts : []).map(normalizePrompt);
     const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
