@@ -70,14 +70,17 @@ function createContextMenus(prompts) {
 function initMenus() {
   chrome.storage.local.get({ prompts: [] }, ({ prompts }) => createContextMenus(prompts));
 }
-chrome.runtime.onInstalled.addListener(initMenus);
-chrome.runtime.onStartup.addListener(initMenus);
-chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
-  if (msg && msg.type === 'updatePrompts') {
-    createContextMenus(Array.isArray(msg.prompts) ? msg.prompts : []);
-    sendResponse?.({ ok: true });
-  }
-});
+
+if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onInstalled) {
+  chrome.runtime.onInstalled.addListener(initMenus);
+  chrome.runtime.onStartup.addListener(initMenus);
+  chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+    if (msg && msg.type === 'updatePrompts') {
+      createContextMenus(Array.isArray(msg.prompts) ? msg.prompts : []);
+      sendResponse?.({ ok: true });
+    }
+  });
+}
 
 // ---------- click handler ----------
 chrome.contextMenus.onClicked.addListener((info, tab) => {
@@ -185,3 +188,11 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     });
   });
 });
+
+if (typeof module !== 'undefined') {
+  module.exports = {
+    expandTokens,
+    createContextMenus,
+    initMenus
+  };
+}
