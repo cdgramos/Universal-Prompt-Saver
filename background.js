@@ -104,7 +104,25 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
         el.focus();
 
         if (el.isContentEditable) {
-          // ------- single-shot paste: either paste event OR one fallback, never both -------
+          // Identify sites that prefer raw markdown text
+          const wantsMarkdownParsing = /atlassian\.net|jira|gemini|google|chatgpt|openai|claude/i.test(location.hostname);
+
+          // Generate HTML for clipboard/fallback (except plain-text mode)
+          const generatedHtml = String(promptText)
+            .split(/\n{2,}/) // paragraphs (2+ newlines)
+            .map(para => {
+              const trimmed = para.trim();
+              if (/^### /.test(trimmed)) return trimmed.replace(/^### (.*)$/gm, '<h3>$1</h3>');
+              if (/^## /.test(trimmed)) return trimmed.replace(/^## (.*)$/gm, '<h2>$1</h2>');
+              if (/^# /.test(trimmed))  return trimmed.replace(/^# (.*)$/gm,  '<h1>$1</h1>');
+              return `<p>${trimmed
+                .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+                .replace(/\*(.*?)\*/g, '<i>$1</i>')
+                .replace(/\n/g, '<br>')}</p>`;
+            })
+            .join('');
+
+          let handled = false;
           try {
             const pasteEvent = new ClipboardEvent("paste", {
               clipboardData: new DataTransfer(),
@@ -112,65 +130,45 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
               cancelable: true,
             });
 
-            const html = String(promptText)
-              .split(/\n{2,}/) // paragraphs (2+ newlines)
-              .map(para => {
-                const trimmed = para.trim();
-                if (/^### /.test(trimmed)) return trimmed.replace(/^### (.*)$/gm, '<h3>$1</h3>');
-                if (/^## /.test(trimmed)) return trimmed.replace(/^## (.*)$/gm, '<h2>$1</h2>');
-                if (/^# /.test(trimmed))  return trimmed.replace(/^# (.*)$/gm,  '<h1>$1</h1>');
-                return `<p>${trimmed
-                  .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
-                  .replace(/\*(.*?)\*/g, '<i>$1</i>')
-                  .replace(/\n/g, '<br>')}</p>`;
-              })
-              .join('');
-
-            pasteEvent.clipboardData.setData("text/html", html);
+            // If the site wants raw text, only send text/plain to avoid confusion.
+            // Otherwise, send both.
+            if (!wantsMarkdownParsing) {
+               pasteEvent.clipboardData.setData("text/html", generatedHtml);
+            }
             pasteEvent.clipboardData.setData("text/plain", String(promptText));
 
-            // Dispatch and STOP — let the site/editor handle it. No fallback here.
-            el.dispatchEvent(pasteEvent);
-            return;
-          } catch (err) {
-            // Fallback ONLY if constructing/dispatching the ClipboardEvent failed
-            const wantsMarkdownParsing = /atlassian\.net|jira/i.test(location.hostname);
-            if (document.execCommand) {
-              if (wantsMarkdownParsing) {
-                // Plain text → Jira turns #/**/* into headings/bold/lists
-                document.execCommand('insertText', false, String(promptText));
-              } else {
-                // HTML with <br> to preserve line breaks elsewhere
-                const html = String(promptText)
-                  .split(/\n{2,}/)
-                  .map(para => {
-                    const trimmed = para.trim();
-                    if (/^### /.test(trimmed)) return trimmed.replace(/^### (.*)$/gm, '<h3>$1</h3>');
-                    if (/^## /.test(trimmed)) return trimmed.replace(/^## (.*)$/gm, '<h2>$1</h2>');
-                    if (/^# /.test(trimmed))  return trimmed.replace(/^# (.*)$/gm,  '<h1>$1</h1>');
-                    return `<p>${trimmed
-                      .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
-                      .replace(/\*(.*?)\*/g, '<i>$1</i>')
-                      .replace(/\n/g, '<br>')}</p>`;
-                  })
-                  .join('');
-                document.execCommand('insertHTML', false, html);
-              }
-            } else {
-              // Very last resort: Range API (still do it exactly once)
-              const sel = window.getSelection();
-              if (!sel || !sel.rangeCount) return;
-              const range = sel.getRangeAt(0);
-              const tpl = document.createElement('template');
-              const safe = (s) => s
-                .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-                .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-              const html = safe(String(promptText)).replace(/\r\n|\r|\n/g, '<br>');
-              tpl.innerHTML = html;
-              range.deleteContents();
-              range.insertNode(tpl.content);
+            // If preventDefault() was called by the site, dispatchEvent returns false.
+            if (!el.dispatchEvent(pasteEvent)) {
+              handled = true;
             }
-            return;
+          } catch (err) {
+            // Ignore error, proceed to fallback
+          }
+
+          if (handled) return;
+
+          // Fallback logic
+          if (document.execCommand) {
+            if (wantsMarkdownParsing) {
+              // Plain text → let the site parse markdown
+              document.execCommand('insertText', false, String(promptText));
+            } else {
+              // HTML with <br> to preserve line breaks elsewhere
+              document.execCommand('insertHTML', false, generatedHtml);
+            }
+          } else {
+            // Very last resort: Range API
+            const sel = window.getSelection();
+            if (!sel || !sel.rangeCount) return;
+            const range = sel.getRangeAt(0);
+            const tpl = document.createElement('template');
+            const safe = (s) => s
+              .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+              .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+            const html = safe(String(promptText)).replace(/\r\n|\r|\n/g, '<br>');
+            tpl.innerHTML = html;
+            range.deleteContents();
+            range.insertNode(tpl.content);
           }
         } else {
           // Inputs / textareas: standard text insertion (preserves \n)
