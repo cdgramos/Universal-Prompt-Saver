@@ -1,0 +1,27 @@
+{
+  "name": "app",
+  "version": "1.0.0",
+  "description": "Chrome extension to save prompts and quickly insert them anywhere with a right-click. Ideal for ChatGPT users, customer support agents, developers, and content creators who frequently reuse text snippets.",
+  "main": "background.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cdgramos/Universal-Prompt-Saver.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/cdgramos/Universal-Prompt-Saver/issues"
+  },
+  "homepage": "https://github.com/cdgramos/Universal-Prompt-Saver#readme",
+  "devDependencies": {
+    "jest": "^30.2.0",
+    "jest-chrome": "^0.8.0",
+    "jest-environment-jsdom": "^30.2.0",
+    "jsdom": "^27.2.0"
+  }
+}

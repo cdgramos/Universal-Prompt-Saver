@@ -222,10 +222,28 @@ importFile.addEventListener('change', () => {
   reader.readAsText(file);
 });
 
-document.addEventListener('DOMContentLoaded', () => {
-  const versionElement = document.getElementById('appVersion');
-  const manifestData = chrome.runtime.getManifest();
-  versionElement.textContent = `v${manifestData.version}`;
-});
+if (typeof document !== 'undefined') {
+  document.addEventListener('DOMContentLoaded', () => {
+    const versionElement = document.getElementById('appVersion');
+    if (versionElement) {
+        const manifestData = chrome.runtime.getManifest();
+        versionElement.textContent = `v${manifestData.version}`;
+    }
+  });
 
-loadPrompts();
+  // Only load prompts if we are in the extension environment (not test)
+  // Check for the presence of elements to know if we are in the popup context
+  if (groupedList) {
+      loadPrompts();
+  }
+}
+
+if (typeof module !== 'undefined') {
+    module.exports = {
+        normalizeFolder,
+        normalizePrompt,
+        groupByFolder,
+        refreshFolderSuggestions,
+        // Expose other functions if needed for testing, or rely on side-effects on DOM
+    };
+}
