@@ -12,15 +12,17 @@ Welcome! This document provides context, architectural details, and guidelines f
 *   **Smart Pasting:** Inserts text into inputs, textareas, and `contentEditable` elements.
 *   **Rich Text & Markdown:** Handles HTML insertion but detects "Markdown-aware" sites (like Jira, ChatGPT, Gemini) to prioritize plain text/Markdown to avoid formatting issues.
 *   **Token Expansion:** Supports dynamic tokens like `{{date}}`, `{{time}}`, `{{iso}}`.
+*   **Quick Prompt Picker:** A global searchable overlay (`Ctrl+Shift+P`) to find and paste prompts.
+*   **Shortcuts:** `Ctrl+Shift+1` through `9` to instantly paste the top 9 prompts.
 
 ## 2. Architecture & Key Files
 
 | File | Purpose |
 | :--- | :--- |
-| `manifest.json` | Manifest V3 definition. Permissions: `contextMenus`, `storage`, `scripting`, `activeTab`. |
-| `background.js` | **Service Worker.** Handles context menu creation/updates and the core pasting logic (via `scripting.executeScript`). |
+| `manifest.json` | Manifest V3 definition. Permissions: `contextMenus`, `storage`, `scripting`, `activeTab`. Defines `commands` and `content_scripts`. |
+| `background.js` | **Service Worker.** Handles context menu, shortcuts (`chrome.commands`), and the core pasting logic (via `scripting.executeScript`). |
 | `popup.js` / `.html` | **UI Action.** Manages CRUD operations for prompts, folders, and import/export. Uses `chrome.storage.local`. |
-| `content.js` | Currently empty/optional. Most interaction happens via injected scripts from `background.js`. |
+| `content.js` | **Content Script.** Injected into all pages. Handles the "Quick Prompt Picker" overlay UI and keyboard interactions. |
 
 ## 3. Core Logic Explanation
 
@@ -52,6 +54,13 @@ The extension uses a robust fallback mechanism to ensure text is inserted correc
 
 **Markdown-Aware Sites:**
 The code explicitly checks `location.hostname` against a regex (e.g., `jira`, `chatgpt`, `gemini`) to adjust pasting behavior. This is crucial to prevent these apps from misinterpreting HTML clipboard data.
+
+### 3.4. Quick Prompt Picker & Shortcuts
+*   **Prompt Picker:** Triggered by `Ctrl+Shift+P` (configurable in `chrome://extensions/shortcuts`).
+    *   The background script receives the command and sends a `togglePromptPicker` message to the active tab's `content.js`.
+    *   `content.js` renders a Shadow DOM overlay with a search input and list.
+    *   When a prompt is selected, `content.js` closes the overlay, restores focus to the previously active element, and sends a `pastePrompt` message to `background.js`.
+*   **Quick Shortcuts (1-9):** `Ctrl+Shift+1` ... `9` correspond to the first 9 prompts in the stored list. `background.js` handles these commands directly by invoking the paste logic.
 
 ## 4. Development Guidelines
 

@@ -50,3 +50,4 @@ Manual install:
 * 20-09-2025 - 1.8: Jira/markdown paste bug fixed
 * 25-09-2025 - 1.9: Moved from sync storage to local storage (sync has a size limit "kQuotaBytesPerItem", which limits the number and size of the prompts). Removed folder name capitalization from the popup.
 * 04-12-2025 - 1.10: Fixed a bug that prevented the prompts from being pasted in Gemini
+* 22-01-2026 - 1.11: Added "Quick Prompt Picker" (Ctrl+Shift+P) and shortcuts for top 9 prompts (Ctrl+Shift+1..9).
