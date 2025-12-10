@@ -12,8 +12,7 @@ Welcome! This document provides context, architectural details, and guidelines f
 *   **Smart Pasting:** Inserts text into inputs, textareas, and `contentEditable` elements.
 *   **Rich Text & Markdown:** Handles HTML insertion but detects "Markdown-aware" sites (like Jira, ChatGPT, Gemini) to prioritize plain text/Markdown to avoid formatting issues.
 *   **Token Expansion:** Supports dynamic tokens like `{{date}}`, `{{time}}`, `{{iso}}`.
-*   **Quick Prompt Picker:** A global searchable overlay (`Ctrl+Shift+P`) to find and paste prompts.
-*   **Shortcuts:** `Ctrl+Shift+1` through `9` to instantly paste the top 9 prompts.
+*   **Quick Prompt Picker:** A global searchable overlay (`||p`) to find and paste prompts.
 
 ## 2. Architecture & Key Files
 
