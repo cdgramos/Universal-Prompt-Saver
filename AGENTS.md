@@ -56,8 +56,8 @@ The extension uses a robust fallback mechanism to ensure text is inserted correc
 The code explicitly checks `location.hostname` against a regex (e.g., `jira`, `chatgpt`, `gemini`) to adjust pasting behavior. This is crucial to prevent these apps from misinterpreting HTML clipboard data.
 
 ### 3.4. Quick Prompt Picker
-*   **Prompt Picker:** Triggered by typing `//p ` (slash slash p space) in any editable field.
-    *   `content.js` listens for `input` events and detects the `//p ` sequence.
+*   **Prompt Picker:** Triggered by typing `||p ` (pipe pipe p space) in any editable field.
+    *   `content.js` listens for `input` events and detects the `||p ` sequence.
     *   It removes the trigger text and renders a Shadow DOM overlay with a search input and list.
     *   When a prompt is selected, `content.js` closes the overlay, restores focus to the previously active element, expands tokens, and pastes the text directly.
 

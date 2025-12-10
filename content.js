@@ -378,7 +378,7 @@ document.addEventListener('input', (e) => {
      if (end < 4) return;
 
      const slice = val.slice(end - 4, end);
-     if (slice.toLowerCase() === '//p ') {
+     if (slice.toLowerCase() === '||p ') {
         // Match found
         const newVal = val.slice(0, end - 4) + val.slice(end);
         el.value = newVal;
@@ -396,7 +396,7 @@ document.addEventListener('input', (e) => {
           const text = node.textContent;
           if (offset >= 4) {
               const slice = text.slice(offset - 4, offset);
-              if (slice.toLowerCase() === '//p ') {
+              if (slice.toLowerCase() === '||p ') {
                   // Remove text
                   const before = text.slice(0, offset - 4);
                   const after = text.slice(offset);
