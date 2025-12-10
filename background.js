@@ -190,22 +190,3 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     injectPasteScript(tab.id, expanded);
   });
 });
-
-// ---------- commands handler ----------
-chrome.commands.onCommand.addListener((command) => {
-  if (command.startsWith('paste-prompt-')) {
-    const n = parseInt(command.replace('paste-prompt-', ''), 10);
-    if (!isNaN(n)) {
-       chrome.storage.local.get({ prompts: [] }, ({ prompts }) => {
-          // Assume "Top 1-9" means the first 9 prompts in the list
-          const item = (Array.isArray(prompts) ? prompts : [])[n - 1];
-          if (item) {
-             const expanded = expandTokens(String(item.prompt || ''));
-             chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-               if (tabs[0]) injectPasteScript(tabs[0].id, expanded);
-             });
-          }
-       });
-    }
-  }
-});

@@ -24,10 +24,8 @@ When prompts are added or deleted, the context menu updates in real time — no 
 Backup or transfer your saved prompts using JSON files.
 
 
-### Quick Prompt Picker & Shortcuts
+### Quick Prompt Picker
 Type `//p ` (followed by a space) in any text field to open the searchable prompt picker.
-You can also use `Ctrl+Shift+1` through `4` to instantly paste your top 4 prompts.
-Shortcuts for prompts 5-9 are available but must be manually assigned in `chrome://extensions/shortcuts` due to Chrome limits.
 
 
 ## License
@@ -56,4 +54,4 @@ Manual install:
 * 20-09-2025 - 1.8: Jira/markdown paste bug fixed
 * 25-09-2025 - 1.9: Moved from sync storage to local storage (sync has a size limit "kQuotaBytesPerItem", which limits the number and size of the prompts). Removed folder name capitalization from the popup.
 * 04-12-2025 - 1.10: Fixed a bug that prevented the prompts from being pasted in Gemini
-* 22-01-2026 - 1.11: Added "Quick Prompt Picker" (Ctrl+Shift+P) and shortcuts for top 9 prompts (Ctrl+Shift+1..9).
+* 22-01-2026 - 1.11: Added "Quick Prompt Picker" (triggered by typing `//p `).
