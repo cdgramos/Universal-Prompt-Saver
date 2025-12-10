@@ -190,3 +190,38 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     injectPasteScript(tab.id, expanded);
   });
 });
+
+// ---------- commands ----------
+chrome.commands.onCommand.addListener((command, tab) => {
+  if (command === 'toggle-picker') {
+    // If command is triggered from a tab, 'tab' should be defined.
+    // If not, we query the active tab.
+    if (!tab) {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs && tabs[0]) handleTogglePicker(tabs[0].id);
+      });
+    } else {
+      handleTogglePicker(tab.id);
+    }
+  }
+});
+
+function handleTogglePicker(tabId) {
+    // Try sending message first
+    chrome.tabs.sendMessage(tabId, { type: 'togglePromptPicker' }, (response) => {
+        if (chrome.runtime.lastError) {
+            // Script likely not injected
+            chrome.scripting.executeScript({
+                target: { tabId: tabId },
+                files: ['content.js']
+            }, () => {
+                if (chrome.runtime.lastError) {
+                    console.error('Failed to inject script:', chrome.runtime.lastError);
+                } else {
+                    // Retry message
+                     chrome.tabs.sendMessage(tabId, { type: 'togglePromptPicker' });
+                }
+            });
+        }
+    });
+}

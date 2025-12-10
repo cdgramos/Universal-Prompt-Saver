@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Universal Prompt Saver",
-  "version": "1.11",
+  "version": "1.12",
   "description": "Save prompts and insert them anywhere with a right-click.",
   "permissions": [
     "contextMenus",
@@ -26,15 +26,13 @@
     "48": "icon48.png",
     "128": "icon128.png"
   },
-  "content_scripts": [
-    {
-      "matches": [
-        "<all_urls>"
-      ],
-      "js": [
-        "content.js"
-      ],
-      "all_frames": true
+  "commands": {
+    "toggle-picker": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Space",
+        "mac": "MacCtrl+Shift+Space"
+      },
+      "description": "Open Quick Prompt Picker"
     }
-  ]
+  }
 }

@@ -1,5 +1,8 @@
 /* content.js - Prompt Picker Overlay */
 
+if (typeof window.upsContentScriptInjected === 'undefined') {
+window.upsContentScriptInjected = true;
+
 let overlayHost = null;
 let shadowRoot = null;
 let lastActiveElement = null;
@@ -367,51 +370,4 @@ chrome.runtime.onMessage.addListener((msg) => {
   }
 });
 
-// Text Trigger Listener
-document.addEventListener('input', (e) => {
-  const el = e.target;
-  if (!el) return;
-
-  if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-     const val = el.value;
-     const end = el.selectionEnd;
-     if (end < 4) return;
-
-     const slice = val.slice(end - 4, end);
-     if (slice.toLowerCase() === '||p ') {
-        // Match found
-        const newVal = val.slice(0, end - 4) + val.slice(end);
-        el.value = newVal;
-        el.selectionStart = el.selectionEnd = end - 4;
-        showOverlay();
-     }
-  } else if (el.isContentEditable) {
-      const sel = window.getSelection();
-      if (!sel || !sel.rangeCount) return;
-      const range = sel.getRangeAt(0);
-      const node = range.endContainer;
-      const offset = range.endOffset;
-
-      if (node.nodeType === Node.TEXT_NODE) {
-          const text = node.textContent;
-          if (offset >= 4) {
-              const slice = text.slice(offset - 4, offset);
-              if (slice.toLowerCase() === '||p ') {
-                  // Remove text
-                  const before = text.slice(0, offset - 4);
-                  const after = text.slice(offset);
-                  node.textContent = before + after;
-
-                  // Restore cursor
-                  const newRange = document.createRange();
-                  newRange.setStart(node, offset - 4);
-                  newRange.setEnd(node, offset - 4);
-                  sel.removeAllRanges();
-                  sel.addRange(newRange);
-
-                  showOverlay();
-              }
-          }
-      }
-  }
-}, true);
+}
