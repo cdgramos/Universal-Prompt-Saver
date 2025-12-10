@@ -414,4 +414,4 @@ document.addEventListener('input', (e) => {
           }
       }
   }
-});
+}, true);
