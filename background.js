@@ -199,13 +199,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 
 // ---------- commands handler ----------
 chrome.commands.onCommand.addListener((command) => {
-  if (command === 'show-prompt-picker') {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs[0]) {
-        chrome.tabs.sendMessage(tabs[0].id, { type: 'togglePromptPicker' });
-      }
-    });
-  } else if (command.startsWith('paste-prompt-')) {
+  if (command.startsWith('paste-prompt-')) {
     const n = parseInt(command.replace('paste-prompt-', ''), 10);
     if (!isNaN(n)) {
        chrome.storage.local.get({ prompts: [] }, ({ prompts }) => {

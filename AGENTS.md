@@ -56,11 +56,11 @@ The extension uses a robust fallback mechanism to ensure text is inserted correc
 The code explicitly checks `location.hostname` against a regex (e.g., `jira`, `chatgpt`, `gemini`) to adjust pasting behavior. This is crucial to prevent these apps from misinterpreting HTML clipboard data.
 
 ### 3.4. Quick Prompt Picker & Shortcuts
-*   **Prompt Picker:** Triggered by `Ctrl+Shift+P` (configurable in `chrome://extensions/shortcuts`).
-    *   The background script receives the command and sends a `togglePromptPicker` message to the active tab's `content.js`.
-    *   `content.js` renders a Shadow DOM overlay with a search input and list.
+*   **Prompt Picker:** Triggered by typing `//p ` (slash slash p space) in any editable field.
+    *   `content.js` listens for `input` events and detects the `//p ` sequence.
+    *   It removes the trigger text and renders a Shadow DOM overlay with a search input and list.
     *   When a prompt is selected, `content.js` closes the overlay, restores focus to the previously active element, and sends a `pastePrompt` message to `background.js`.
-*   **Quick Shortcuts (1-9):** `Ctrl+Shift+1` ... `9` correspond to the first 9 prompts in the stored list. `background.js` handles these commands directly by invoking the paste logic. Note that due to Chrome's limit of 4 suggested keys, only 1-3 are bound by default (plus the picker). Users must bind 4-9 manually.
+*   **Quick Shortcuts (1-9):** `Ctrl+Shift+1` ... `9` correspond to the first 9 prompts in the stored list. `background.js` handles these commands directly by invoking the paste logic. Note that due to Chrome's limit of 4 suggested keys, only 1-4 are bound by default. Users must bind 5-9 manually.
 
 ## 4. Development Guidelines
 

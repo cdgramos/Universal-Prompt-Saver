@@ -25,9 +25,9 @@ Backup or transfer your saved prompts using JSON files.
 
 
 ### Quick Prompt Picker & Shortcuts
-Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on Mac) to open a searchable prompt picker.
-You can also use `Ctrl+Shift+1` through `3` to instantly paste your top 3 prompts.
-Shortcuts for prompts 4-9 are available but must be manually assigned in `chrome://extensions/shortcuts` due to Chrome limits.
+Type `//p ` (followed by a space) in any text field to open the searchable prompt picker.
+You can also use `Ctrl+Shift+1` through `4` to instantly paste your top 4 prompts.
+Shortcuts for prompts 5-9 are available but must be manually assigned in `chrome://extensions/shortcuts` due to Chrome limits.
 
 
 ## License

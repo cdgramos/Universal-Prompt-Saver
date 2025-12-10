@@ -37,13 +37,6 @@
     }
   ],
   "commands": {
-    "show-prompt-picker": {
-      "suggested_key": {
-        "default": "Ctrl+Shift+P",
-        "mac": "Command+Shift+P"
-      },
-      "description": "Open Prompt Picker"
-    },
     "paste-prompt-1": {
       "description": "Paste prompt #1",
       "suggested_key": {
@@ -66,7 +59,11 @@
       }
     },
     "paste-prompt-4": {
-      "description": "Paste prompt #4"
+      "description": "Paste prompt #4",
+      "suggested_key": {
+        "default": "Ctrl+Shift+4",
+        "mac": "Command+Shift+4"
+      }
     },
     "paste-prompt-5": {
       "description": "Paste prompt #5"
