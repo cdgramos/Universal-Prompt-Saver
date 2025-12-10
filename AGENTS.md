@@ -60,7 +60,7 @@ The code explicitly checks `location.hostname` against a regex (e.g., `jira`, `c
     *   The background script receives the command and sends a `togglePromptPicker` message to the active tab's `content.js`.
     *   `content.js` renders a Shadow DOM overlay with a search input and list.
     *   When a prompt is selected, `content.js` closes the overlay, restores focus to the previously active element, and sends a `pastePrompt` message to `background.js`.
-*   **Quick Shortcuts (1-9):** `Ctrl+Shift+1` ... `9` correspond to the first 9 prompts in the stored list. `background.js` handles these commands directly by invoking the paste logic.
+*   **Quick Shortcuts (1-9):** `Ctrl+Shift+1` ... `9` correspond to the first 9 prompts in the stored list. `background.js` handles these commands directly by invoking the paste logic. Note that due to Chrome's limit of 4 suggested keys, only 1-3 are bound by default (plus the picker). Users must bind 4-9 manually.
 
 ## 4. Development Guidelines
 

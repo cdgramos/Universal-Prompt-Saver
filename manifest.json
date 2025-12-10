@@ -45,66 +45,42 @@
       "description": "Open Prompt Picker"
     },
     "paste-prompt-1": {
+      "description": "Paste prompt #1",
       "suggested_key": {
         "default": "Ctrl+Shift+1",
         "mac": "Command+Shift+1"
-      },
-      "description": "Paste prompt #1"
+      }
     },
     "paste-prompt-2": {
+      "description": "Paste prompt #2",
       "suggested_key": {
         "default": "Ctrl+Shift+2",
         "mac": "Command+Shift+2"
-      },
-      "description": "Paste prompt #2"
+      }
     },
     "paste-prompt-3": {
+      "description": "Paste prompt #3",
       "suggested_key": {
         "default": "Ctrl+Shift+3",
         "mac": "Command+Shift+3"
-      },
-      "description": "Paste prompt #3"
+      }
     },
     "paste-prompt-4": {
-      "suggested_key": {
-        "default": "Ctrl+Shift+4",
-        "mac": "Command+Shift+4"
-      },
       "description": "Paste prompt #4"
     },
     "paste-prompt-5": {
-      "suggested_key": {
-        "default": "Ctrl+Shift+5",
-        "mac": "Command+Shift+5"
-      },
       "description": "Paste prompt #5"
     },
     "paste-prompt-6": {
-      "suggested_key": {
-        "default": "Ctrl+Shift+6",
-        "mac": "Command+Shift+6"
-      },
       "description": "Paste prompt #6"
     },
     "paste-prompt-7": {
-      "suggested_key": {
-        "default": "Ctrl+Shift+7",
-        "mac": "Command+Shift+7"
-      },
       "description": "Paste prompt #7"
     },
     "paste-prompt-8": {
-      "suggested_key": {
-        "default": "Ctrl+Shift+8",
-        "mac": "Command+Shift+8"
-      },
       "description": "Paste prompt #8"
     },
     "paste-prompt-9": {
-      "suggested_key": {
-        "default": "Ctrl+Shift+9",
-        "mac": "Command+Shift+9"
-      },
       "description": "Paste prompt #9"
     }
   }
