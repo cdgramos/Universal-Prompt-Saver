@@ -7,6 +7,116 @@ let prompts = [];
 let filteredPrompts = [];
 let selectedIndex = 0;
 
+function expandTokens(text) {
+  const now = new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  const yyyy = now.getFullYear();
+  const mm = pad(now.getMonth() + 1);
+  const dd = pad(now.getDate());
+  const hh = pad(now.getHours());
+  const min = pad(now.getMinutes());
+  const ss = pad(now.getSeconds());
+  const weekdays = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+  const map = {
+    '{{date}}': `${yyyy}-${mm}-${dd}`,
+    '{{time}}': `${hh}:${min}`,
+    '{{seconds}}': `${ss}`,
+    '{{datetime}}': `${yyyy}-${mm}-${dd} ${hh}:${min}`,
+    '{{iso}}': now.toISOString(),
+    '{{weekday}}': weekdays[now.getDay()],
+  };
+  return text.replace(/\{\{(date|time|seconds|datetime|iso|weekday)\}\}/g, m => map[m] || m);
+}
+
+function pastePromptToActiveElement(promptText) {
+  let target = document.activeElement;
+
+  // Try to restore focus if active element is body or not editable
+  if (!target || !(target.tagName === 'TEXTAREA' || target.tagName === 'INPUT' || target.isContentEditable)) {
+    if (lastActiveElement && (lastActiveElement.tagName === 'TEXTAREA' || lastActiveElement.tagName === 'INPUT' || lastActiveElement.isContentEditable)) {
+        lastActiveElement.focus();
+        target = document.activeElement;
+    }
+  }
+
+  if (!target || !(target.tagName === 'TEXTAREA' || target.tagName === 'INPUT' || target.isContentEditable)) {
+    alert('No active input or editable field to insert the prompt.');
+    return;
+  }
+
+  if (target.isContentEditable) {
+    // Identify sites that prefer raw markdown text
+    const wantsMarkdownParsing = /atlassian\.net|jira|gemini|google|chatgpt|openai|claude/i.test(location.hostname);
+
+    // Generate HTML for clipboard/fallback (except plain-text mode)
+    const generatedHtml = String(promptText)
+      .split(/\n{2,}/) // paragraphs (2+ newlines)
+      .map(para => {
+        const trimmed = para.trim();
+        if (/^### /.test(trimmed)) return trimmed.replace(/^### (.*)$/gm, '<h3>$1</h3>');
+        if (/^## /.test(trimmed)) return trimmed.replace(/^## (.*)$/gm, '<h2>$1</h2>');
+        if (/^# /.test(trimmed))  return trimmed.replace(/^# (.*)$/gm,  '<h1>$1</h1>');
+        return `<p>${trimmed
+          .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+          .replace(/\*(.*?)\*/g, '<i>$1</i>')
+          .replace(/\n/g, '<br>')}</p>`;
+      })
+      .join('');
+
+    let handled = false;
+    try {
+      const pasteEvent = new ClipboardEvent("paste", {
+        clipboardData: new DataTransfer(),
+        bubbles: true,
+        cancelable: true,
+      });
+
+      if (!wantsMarkdownParsing) {
+         pasteEvent.clipboardData.setData("text/html", generatedHtml);
+      }
+      pasteEvent.clipboardData.setData("text/plain", String(promptText));
+
+      if (!target.dispatchEvent(pasteEvent)) {
+        handled = true;
+      }
+    } catch (err) {
+      // Ignore
+    }
+
+    if (handled) return;
+
+    if (document.execCommand) {
+      if (wantsMarkdownParsing) {
+        document.execCommand('insertText', false, String(promptText));
+      } else {
+        document.execCommand('insertHTML', false, generatedHtml);
+      }
+    } else {
+      const sel = window.getSelection();
+      if (!sel || !sel.rangeCount) return;
+      const range = sel.getRangeAt(0);
+      const tpl = document.createElement('template');
+      const safe = (s) => s
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+      const html = safe(String(promptText)).replace(/\r\n|\r|\n/g, '<br>');
+      tpl.innerHTML = html;
+      range.deleteContents();
+      range.insertNode(tpl.content);
+    }
+  } else {
+    const start = target.selectionStart ?? target.value.length;
+    const end   = target.selectionEnd   ?? target.value.length;
+    const before = target.value.slice(0, start);
+    const after  = target.value.slice(end);
+    target.value = before + promptText + after;
+    const pos = start + promptText.length;
+    target.selectionStart = target.selectionEnd = pos;
+    target.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+}
+
 function createOverlay() {
   if (overlayHost) return; // already created
 
@@ -239,10 +349,10 @@ function handleKeydown(e) {
 function selectPrompt(index) {
   const p = filteredPrompts[index];
   if (p) {
-    closeOverlay(); // Focus restores here
-    // Wait a tick to ensure focus is restored
+    closeOverlay();
     setTimeout(() => {
-        chrome.runtime.sendMessage({ type: 'pastePrompt', text: p.prompt });
+        const text = expandTokens(p.prompt || '');
+        pastePromptToActiveElement(text);
     }, 50);
   }
 }

@@ -173,12 +173,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg && msg.type === 'updatePrompts') {
     createContextMenus(Array.isArray(msg.prompts) ? msg.prompts : []);
     sendResponse?.({ ok: true });
-  } else if (msg && msg.type === 'pastePrompt') {
-    // Message from content script (Picker)
-    if (sender.tab) {
-       const expanded = expandTokens(String(msg.text || ''));
-       injectPasteScript(sender.tab.id, expanded);
-    }
   }
 });
 
