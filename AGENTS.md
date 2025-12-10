@@ -12,7 +12,7 @@ Welcome! This document provides context, architectural details, and guidelines f
 *   **Smart Pasting:** Inserts text into inputs, textareas, and `contentEditable` elements.
 *   **Rich Text & Markdown:** Handles HTML insertion but detects "Markdown-aware" sites (like Jira, ChatGPT, Gemini) to prioritize plain text/Markdown to avoid formatting issues.
 *   **Token Expansion:** Supports dynamic tokens like `{{date}}`, `{{time}}`, `{{iso}}`.
-*   **Quick Prompt Picker:** A global searchable overlay (default: `Ctrl+Shift+Space`) to find and paste prompts.
+*   **Quick Prompt Picker:** A global searchable overlay (default: `Alt+Shift+P`) to find and paste prompts.
 
 ## 2. Architecture & Key Files
 
@@ -55,7 +55,7 @@ The extension uses a robust fallback mechanism to ensure text is inserted correc
 The code explicitly checks `location.hostname` against a regex (e.g., `jira`, `chatgpt`, `gemini`) to adjust pasting behavior. This is crucial to prevent these apps from misinterpreting HTML clipboard data.
 
 ### 3.4. Quick Prompt Picker
-*   **Prompt Picker:** Triggered by keyboard shortcut (default: `Ctrl+Shift+Space`).
+*   **Prompt Picker:** Triggered by keyboard shortcut (default: `Alt+Shift+P`).
     *   `background.js` listens for the command and injects `content.js` if necessary using `activeTab` permissions.
     *   `content.js` renders a Shadow DOM overlay with a search input and list.
     *   When a prompt is selected, `content.js` closes the overlay, restores focus to the previously active element, expands tokens, and pastes the text directly.
