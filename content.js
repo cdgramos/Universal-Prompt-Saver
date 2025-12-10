@@ -254,6 +254,10 @@ function showOverlay() {
     prompts = Array.isArray(data.prompts) ? data.prompts : [];
     filterPrompts('');
     overlayHost.input.focus();
+    // Re-focus after a short delay to handle sites that steal focus back (e.g. Jira)
+    setTimeout(() => {
+        if (overlayHost && overlayHost.input) overlayHost.input.focus();
+    }, 100);
   });
 }
 
@@ -378,7 +382,7 @@ document.addEventListener('input', (e) => {
      if (end < 4) return;
 
      const slice = val.slice(end - 4, end);
-     if (slice.toLowerCase() === '||p ') {
+     if (slice === '||| ') {
         // Match found
         const newVal = val.slice(0, end - 4) + val.slice(end);
         el.value = newVal;
@@ -396,7 +400,7 @@ document.addEventListener('input', (e) => {
           const text = node.textContent;
           if (offset >= 4) {
               const slice = text.slice(offset - 4, offset);
-              if (slice.toLowerCase() === '||p ') {
+              if (slice === '||| ') {
                   // Remove text
                   const before = text.slice(0, offset - 4);
                   const after = text.slice(offset);
