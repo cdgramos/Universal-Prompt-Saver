@@ -248,6 +248,19 @@ function createOverlay() {
   });
 }
 
+function handleFocusSteal(e) {
+  if (!overlayHost) return;
+  const path = e.composedPath();
+  const isInside = path.includes(overlayHost) || (shadowRoot && path.includes(shadowRoot));
+
+  if (!isInside) {
+      console.log('[UPS] Focus steal detected. Reclaiming focus.');
+      e.stopPropagation();
+      e.preventDefault();
+      if (overlayHost.input) overlayHost.input.focus();
+  }
+}
+
 function showOverlay() {
   lastActiveElement = document.activeElement;
   if (lastActiveElement) lastActiveElement.blur(); // Blur the active element to release focus
@@ -255,26 +268,31 @@ function showOverlay() {
   createOverlay();
   document.body.appendChild(overlayHost);
 
+  // Trap focus
+  document.addEventListener('focus', handleFocusSteal, true);
+
   overlayHost.input.value = '';
+  // Sync focus attempt
+  overlayHost.input.focus();
+  console.log('[UPS] Overlay opened, focused input.');
 
   chrome.storage.local.get({ prompts: [] }, (data) => {
     prompts = Array.isArray(data.prompts) ? data.prompts : [];
     filterPrompts('');
 
-    // Aggressive focus attempts
-    const tryFocus = () => {
-        if (overlayHost && overlayHost.input) {
-             overlayHost.input.focus();
-        }
-    };
-    tryFocus();
+    // Retry loop just in case
     for (let i = 1; i <= 6; i++) {
-        setTimeout(tryFocus, i * 50);
+        setTimeout(() => {
+             if (overlayHost && overlayHost.input) {
+                 overlayHost.input.focus();
+             }
+        }, i * 50);
     }
   });
 }
 
 function closeOverlay() {
+  document.removeEventListener('focus', handleFocusSteal, true);
   if (overlayHost && overlayHost.parentNode) {
     overlayHost.parentNode.removeChild(overlayHost);
   }
