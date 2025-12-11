@@ -241,10 +241,17 @@ function createOverlay() {
   // Expose elements for updating
   overlayHost.input = input;
   overlayHost.list = list;
+
+  // Isolate events in overlay to prevent host site from intercepting them
+  ['keydown', 'keyup', 'keypress', 'input'].forEach(evt => {
+    overlayHost.addEventListener(evt, (e) => e.stopPropagation());
+  });
 }
 
 function showOverlay() {
   lastActiveElement = document.activeElement;
+  if (lastActiveElement) lastActiveElement.blur(); // Blur the active element to release focus
+
   createOverlay();
   document.body.appendChild(overlayHost);
 
@@ -253,11 +260,17 @@ function showOverlay() {
   chrome.storage.local.get({ prompts: [] }, (data) => {
     prompts = Array.isArray(data.prompts) ? data.prompts : [];
     filterPrompts('');
-    overlayHost.input.focus();
-    // Re-focus after a short delay to handle sites that steal focus back (e.g. Jira)
-    setTimeout(() => {
-        if (overlayHost && overlayHost.input) overlayHost.input.focus();
-    }, 100);
+
+    // Aggressive focus attempts
+    const tryFocus = () => {
+        if (overlayHost && overlayHost.input) {
+             overlayHost.input.focus();
+        }
+    };
+    tryFocus();
+    for (let i = 1; i <= 6; i++) {
+        setTimeout(tryFocus, i * 50);
+    }
   });
 }
 
