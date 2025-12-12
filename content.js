@@ -241,23 +241,58 @@ function createOverlay() {
   // Expose elements for updating
   overlayHost.input = input;
   overlayHost.list = list;
+
+  // Isolate events in overlay to prevent host site from intercepting them
+  ['keydown', 'keyup', 'keypress', 'input'].forEach(evt => {
+    overlayHost.addEventListener(evt, (e) => e.stopPropagation());
+  });
+}
+
+function handleFocusSteal(e) {
+  if (!overlayHost) return;
+  const path = e.composedPath();
+  const isInside = path.includes(overlayHost) || (shadowRoot && path.includes(shadowRoot));
+
+  if (!isInside) {
+      console.log('[UPS] Focus steal detected. Reclaiming focus.');
+      e.stopPropagation();
+      e.preventDefault();
+      if (overlayHost.input) overlayHost.input.focus();
+  }
 }
 
 function showOverlay() {
   lastActiveElement = document.activeElement;
+  if (lastActiveElement) lastActiveElement.blur(); // Blur the active element to release focus
+
   createOverlay();
   document.body.appendChild(overlayHost);
 
+  // Trap focus
+  document.addEventListener('focus', handleFocusSteal, true);
+
   overlayHost.input.value = '';
+  // Sync focus attempt
+  overlayHost.input.focus();
+  console.log('[UPS] Overlay opened, focused input.');
 
   chrome.storage.local.get({ prompts: [] }, (data) => {
     prompts = Array.isArray(data.prompts) ? data.prompts : [];
     filterPrompts('');
-    overlayHost.input.focus();
+
+    // Retry loop just in case
+    for (let i = 1; i <= 6; i++) {
+        setTimeout(() => {
+             if (overlayHost && overlayHost.input) {
+                 overlayHost.input.focus();
+             }
+        }, i * 50);
+    }
   });
 }
 
 function closeOverlay() {
+  document.removeEventListener('focus', handleFocusSteal, true);
   if (overlayHost && overlayHost.parentNode) {
     overlayHost.parentNode.removeChild(overlayHost);
   }
@@ -378,7 +413,7 @@ document.addEventListener('input', (e) => {
      if (end < 4) return;
 
      const slice = val.slice(end - 4, end);
-     if (slice.toLowerCase() === '||p ') {
+     if (slice === '||| ') {
         // Match found
         const newVal = val.slice(0, end - 4) + val.slice(end);
         el.value = newVal;
@@ -396,7 +431,7 @@ document.addEventListener('input', (e) => {
           const text = node.textContent;
           if (offset >= 4) {
               const slice = text.slice(offset - 4, offset);
-              if (slice.toLowerCase() === '||p ') {
+              if (slice === '||| ') {
                   // Remove text
                   const before = text.slice(0, offset - 4);
                   const after = text.slice(offset);
