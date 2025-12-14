@@ -36,6 +36,8 @@ Use placeholders inside prompts and they’ll be replaced with the current date/
 * `{{datetime}}` → YYYY-MM-DD HH:MM
 * `{{iso}}` → ISO timestamp (Date.toISOString(), usually UTC)
 * `{{weekday}}` → weekday name (English)
+* `{{clipboard}}` → current clipboard contents
+* `{{selection}}` → currently highlighted text
 
 
 
@@ -67,3 +69,4 @@ Manual install:
 * 04-12-2025 - 1.10: Fixed a bug that prevented the prompts from being pasted in Gemini
 * 22-01-2026 - 1.11: Added "Quick Prompt Picker" (triggered by typing `||p `).
 * 10-12-2025 - 1.12: Changed Quick Prompt Picker trigger from ||p to |||. Fixed focus issue on Jira.
+* 14-12-2025 - 1.13: Added {{clipboard}} and {{selection}} tokens.
