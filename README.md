@@ -30,12 +30,13 @@ Type `||| ` (followed by a space) in any text field to open the searchable promp
 
 ### Template Tags
 Use placeholders inside prompts and they’ll be replaced with the current date/time when the prompt is used:
-`{{date}}` → YYYY-MM-DD
-`{{time}}` → HH:MM (24h)
-`{{seconds}}` → SS
-`{{datetime}}` → YYYY-MM-DD HH:MM
-`{{iso}}` → ISO timestamp (Date.toISOString(), usually UTC)
-`{{weekday}}` → weekday name (English)
+* `{{date}}` → YYYY-MM-DD
+* `{{time}}` → HH:MM (24h)
+* `{{seconds}}` → SS
+* `{{datetime}}` → YYYY-MM-DD HH:MM
+* `{{iso}}` → ISO timestamp (Date.toISOString(), usually UTC)
+* `{{weekday}}` → weekday name (English)
+
 
 
 ## License
