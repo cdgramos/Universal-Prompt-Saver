@@ -4,7 +4,7 @@ const ROOT_MENU_ID = 'ups-root';
 const DEFAULT_FOLDER = 'Ungrouped';
 
 // ---------- token expansion ----------
-function expandTokens(text) {
+function expandTokens(text, selectionText = '') {
   const now = new Date();
   const pad = (n) => String(n).padStart(2, '0');
   const yyyy = now.getFullYear();
@@ -22,8 +22,9 @@ function expandTokens(text) {
     '{{datetime}}': `${yyyy}-${mm}-${dd} ${hh}:${min}`,
     '{{iso}}': now.toISOString(),
     '{{weekday}}': weekdays[now.getDay()],
+    '{{selection}}': selectionText,
   };
-  return text.replace(/\{\{(date|time|seconds|datetime|iso|weekday)\}\}/g, m => map[m] || m);
+  return text.replace(/\{\{(date|time|seconds|datetime|iso|weekday|selection)\}\}/g, m => map[m] || m);
 }
 
 // ---------- paste logic injection ----------
@@ -31,7 +32,16 @@ function injectPasteScript(tabId, promptText) {
   chrome.scripting.executeScript({
     target: { tabId: tabId },
     args: [promptText],
-    func: (promptText) => {
+    func: async (promptText) => {
+      if (promptText.includes('{{clipboard}}')) {
+        try {
+          const clipText = await navigator.clipboard.readText();
+          promptText = promptText.replace(/\{\{clipboard\}\}/g, () => clipText);
+        } catch (e) {
+          promptText = promptText.replace(/\{\{clipboard\}\}/g, '');
+        }
+      }
+
       const el = document.activeElement;
       if (!el || !(el.tagName === 'TEXTAREA' || el.tagName === 'INPUT' || el.isContentEditable)) {
         alert('No active input or editable field to insert the prompt.');
@@ -186,7 +196,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     const item = (Array.isArray(prompts) ? prompts : [])[index];
     if (!item) return;
 
-    const expanded = expandTokens(String(item.prompt || ''));
+    const expanded = expandTokens(String(item.prompt || ''), info.selectionText || '');
     injectPasteScript(tab.id, expanded);
   });
 });

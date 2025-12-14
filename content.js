@@ -7,7 +7,7 @@ let prompts = [];
 let filteredPrompts = [];
 let selectedIndex = 0;
 
-function expandTokens(text) {
+async function expandTokens(text) {
   const now = new Date();
   const pad = (n) => String(n).padStart(2, '0');
   const yyyy = now.getFullYear();
@@ -26,7 +26,41 @@ function expandTokens(text) {
     '{{iso}}': now.toISOString(),
     '{{weekday}}': weekdays[now.getDay()],
   };
-  return text.replace(/\{\{(date|time|seconds|datetime|iso|weekday)\}\}/g, m => map[m] || m);
+
+  // 1. Synchronous tokens
+  let expanded = text.replace(/\{\{(date|time|seconds|datetime|iso|weekday)\}\}/g, m => map[m] || m);
+
+  // 2. Selection token
+  if (expanded.includes('{{selection}}')) {
+    let selection = window.getSelection().toString() || '';
+
+    // Fallback for inputs/textareas where window.getSelection() is often empty in Chrome
+    if (!selection) {
+      const active = document.activeElement;
+      if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) {
+        const start = active.selectionStart;
+        const end = active.selectionEnd;
+        if (start !== null && end !== null && start !== end) {
+          selection = active.value.substring(start, end);
+        }
+      }
+    }
+
+    expanded = expanded.replace(/\{\{selection\}\}/g, () => selection);
+  }
+
+  // 3. Clipboard token (async)
+  if (expanded.includes('{{clipboard}}')) {
+    try {
+      const clipText = await navigator.clipboard.readText();
+      expanded = expanded.replace(/\{\{clipboard\}\}/g, () => clipText);
+    } catch (e) {
+      console.warn('[UPS] Failed to read clipboard in content script:', e);
+      expanded = expanded.replace(/\{\{clipboard\}\}/g, '');
+    }
+  }
+
+  return expanded;
 }
 
 function pastePromptToActiveElement(promptText) {
@@ -385,8 +419,8 @@ function selectPrompt(index) {
   const p = filteredPrompts[index];
   if (p) {
     closeOverlay();
-    setTimeout(() => {
-        const text = expandTokens(p.prompt || '');
+    setTimeout(async () => {
+        const text = await expandTokens(p.prompt || '');
         pastePromptToActiveElement(text);
     }, 50);
   }
