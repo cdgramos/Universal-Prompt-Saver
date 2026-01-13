@@ -361,7 +361,8 @@ function renderList() {
 
     const title = document.createElement('div');
     title.className = 'item-title';
-    title.textContent = p.title || '(untitled)';
+    const icon = p.type === 'llm' ? '✨ ' : '';
+    title.textContent = icon + (p.title || '(untitled)');
 
     const folder = document.createElement('div');
     folder.className = 'item-folder';
@@ -418,11 +419,75 @@ function handleKeydown(e) {
 function selectPrompt(index) {
   const p = filteredPrompts[index];
   if (p) {
-    closeOverlay();
-    setTimeout(async () => {
-        const text = await expandTokens(p.prompt || '');
-        pastePromptToActiveElement(text);
-    }, 50);
+    if (p.type === 'llm') {
+      // LLM Flow
+      // 1. Show loading state
+      const list = overlayHost.list;
+      list.innerHTML = '<li class="picker-item" style="text-align:center; padding: 20px;">Generating... ⏳</li>';
+
+      // 2. Capture selection
+      let selection = window.getSelection().toString() || '';
+      if (!selection) {
+          const active = document.activeElement;
+          if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) {
+              const start = active.selectionStart;
+              const end = active.selectionEnd;
+              if (start !== null && end !== null && start !== end) {
+                  selection = active.value.substring(start, end);
+              }
+          }
+      }
+
+      // 3. Pre-expand tokens (including clipboard)
+      expandTokens(p.prompt || '').then(expandedPrompt => {
+          // If the prompt has {{selection}}, expandTokens handles it IF we update it.
+          // Currently expandTokens uses window.getSelection().
+          // But we already captured a more robust 'selection' variable above (handles input/textarea).
+          // We should manually replace {{selection}} in the expandedPrompt if expandTokens didn't catch it correctly
+          // (expandTokens does handle selection, but maybe using the one captured above is safer if window.getSelection() was empty).
+
+          // Actually, expandTokens in content.js tries to be smart about selection.
+          // Let's rely on expandTokens logic, but we can pass 'selection' text to background just in case background needs it for fallback?
+          // Wait, if we send expandedPrompt, background uses that.
+          // However, expandTokens in content.js:
+          //   - replaces {{selection}} with window.getSelection OR activeElement fallback.
+          //   - replaces {{clipboard}}.
+
+          // So 'expandedPrompt' is fully ready.
+
+          chrome.runtime.sendMessage({
+              type: 'executeLLMPrompt',
+              prompt: p,
+              selectionText: selection, // kept for legacy or if background ignores expandedPrompt (but we updated background)
+              expandedPrompt: expandedPrompt
+          }, (response) => {
+              // 4. Handle response
+              closeOverlay(); // Always close after response (or error)
+
+              if (chrome.runtime.lastError) {
+                  alert('Error calling extension: ' + chrome.runtime.lastError.message);
+                  return;
+              }
+
+              if (response && response.success) {
+                  // Paste result
+                  setTimeout(() => {
+                      pastePromptToActiveElement(response.result);
+                  }, 100);
+              } else {
+                  alert('LLM Generation Failed: ' + (response?.error || 'Unknown error'));
+              }
+          });
+      });
+
+    } else {
+      // Standard Paste Flow
+      closeOverlay();
+      setTimeout(async () => {
+          const text = await expandTokens(p.prompt || '');
+          pastePromptToActiveElement(text);
+      }, 50);
+    }
   }
 }
 

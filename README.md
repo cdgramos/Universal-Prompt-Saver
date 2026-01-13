@@ -39,6 +39,14 @@ Use placeholders inside prompts and they’ll be replaced with the current date/
 * `{{clipboard}}` → current clipboard contents
 * `{{selection}}` → currently highlighted text
 
+### LLM Prompts (Beta)
+Create prompts that call OpenAI or Gemini APIs to process text.
+1. Go to **Settings** in the extension popup and add your API Key (OpenAI or Gemini).
+2. Create a new prompt and set Type to **LLM**.
+3. Use `{{selection}}` in your prompt template to include the text you highlighted.
+4. Run it via Right-Click or Quick Picker (`||| `). The AI response will replace or insert at your cursor.
+
+**Privacy Note:** API Keys are stored locally on your machine (`chrome.storage.local`) and are never synced or sent to any server other than the official API providers (OpenAI/Google).
 
 
 ## License
@@ -70,3 +78,4 @@ Manual install:
 * 22-01-2026 - 1.11: Added "Quick Prompt Picker" (triggered by typing `||p `).
 * 10-12-2025 - 1.12: Changed Quick Prompt Picker trigger from ||p to |||. Fixed focus issue on Jira.
 * 14-12-2025 - 1.13: Added {{clipboard}} and {{selection}} tokens.
+* 27-02-2026 - 1.14: Added LLM Prompts (OpenAI & Gemini integration). Added Settings page for API keys.

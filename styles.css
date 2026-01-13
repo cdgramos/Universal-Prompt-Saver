@@ -1,266 +1,190 @@
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  padding: 20px;
-  width: 380px;
-  background-color: #f9f9f9;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  width: 400px;
+  padding: 16px;
+  background: #f9f9f9;
   color: #333;
 }
-
 h1 {
   font-size: 20px;
-  margin-bottom: 15px;
-  color: #222;
+  margin: 0 0 16px;
+  color: #444;
+}
+h2 {
+    font-size: 16px;
+    margin-top: 0;
+}
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #fff;
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  margin-bottom: 16px;
+}
+input, textarea, select {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 14px;
+}
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+button {
+  cursor: pointer;
+  padding: 8px 12px;
+  background: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+}
+button:hover {
+  background: #0056b3;
+}
+button.delete {
+  background: transparent;
+  color: #d9534f;
+  padding: 4px 8px;
+  font-weight: normal;
+  font-size: 14px;
+}
+button.delete:hover {
+  background: #ffebeb;
+}
+button.edit {
+  background: transparent;
+  color: #555;
+  padding: 4px 8px;
+  font-weight: normal;
+  font-size: 16px;
+}
+button.edit:hover {
+  background: #eee;
+}
+#cancelEdit {
+    background: #6c757d;
+}
+#cancelEdit:hover {
+    background: #5a6268;
 }
 
-#promptList {
+/* Prompt List */
+.folder-section {
+  margin-bottom: 12px;
+}
+.folder-header {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: #888;
+  margin: 0 0 4px 4px;
+  letter-spacing: 0.5px;
+}
+.prompt-list {
   list-style: none;
   padding: 0;
-  margin-bottom: 20px;
-}
-
-#promptList li {
-  background: #ffffff;
-  margin: 8px 0;
-  padding: 10px 70px 10px 12px; /* leave space on right for the icons */
-  border-radius: 8px;
-  position: relative;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-  word-break: break-word;
-  transition: background 0.2s;
-  display: block;
-}
-
-#promptList li:hover {
-  background: #f0f0f0;
-}
-
-.delete {
-  position: absolute;
-  right: 10px;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  font-size: 16px;
-  color: red;
-  cursor: pointer;
-  padding: 0;
-  line-height: 1;
-  width: auto;
-  height: auto;
-}
-
-.edit {
-  position: absolute;
-  right: 35px;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  font-size: 16px;
-  color: red;
-  cursor: pointer;
-  padding: 0;
-  line-height: 1;
-  width: auto;
-  height: auto;
-}
-
-textarea,
-input[type="text"] {
-  width: 100%;
-  padding: 10px;
-  margin-top: 10px;
+  margin: 0;
+  background: #fff;
   border-radius: 6px;
-  border: 1px solid #ccc;
-  box-sizing: border-box;
+  border: 1px solid #eee;
+  overflow: hidden;
+}
+.prompt-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid #f5f5f5;
+}
+.prompt-row:last-child {
+  border-bottom: none;
+}
+.prompt-title {
   font-size: 14px;
-  resize: vertical;
-  background-color: #fff;
-  transition: border-color 0.2s;
+  font-weight: 500;
+}
+.row-actions {
+  display: flex;
+  gap: 4px;
 }
 
-textarea:focus,
-input[type="text"]:focus {
-  border-color: #007bff;
-  outline: none;
-}
-
-button {
-  width: 100%;
-  padding: 10px;
-  margin-top: 10px;
-  background-color: #007bff;
-  border: none;
-  border-radius: 6px;
-  color: #fff;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background-color 0.5s ease;
-}
-
-button:hover {
-  background-color: #0056b3;
-}
-
+/* Footer Actions */
 .prompt-actions {
   display: flex;
   justify-content: space-between;
-  gap: 10px;
+  align-items: center;
 }
-
-.export-section,
-.import-section {
-  flex: 1;
+.import-section, .export-section {
+  display: inline-block;
 }
-
-.import-section input[type="file"] {
-  width: 100%;
-  margin: 5px 0;
+#importFile {
+  display: none;
 }
-
 #appVersion {
-  position: fixed;
-  bottom: 5px;
-  right: 10px;
-  font-size: 12px;
-  color: #888;
-  user-select: none;
+  text-align: right;
+  font-size: 11px;
+  color: #aaa;
+  margin-top: 10px;
 }
 
-.delete,
-.edit {
-  /* make sure there’s some padding or explicit size */
-  padding: 3px;
-  border-radius: 15px;
-  transition: background-color 0.4s, color 0.4s;
+/* Settings & LLM UI */
+.hidden {
+    display: none !important;
 }
-
-.delete:hover,
-.edit:hover {
-  background-color: #0056b3;
-  color: #fff;           /* so your icon (or “×”) turns visible on the blue */
+.settings-form {
+    background: #fff;
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
-
-
-/* Folder UI */
-.form {
-  display: grid;
-  gap: 8px;
-  margin-bottom: 12px;
+.form-group {
+    margin-bottom: 10px;
 }
-
-.folder-section { margin: 8px 0 12px; }
-.folder-header {
-  font-size: 13px;
-  letter-spacing: .06em;
-  color: #555;
-  margin: 10px 0 6px;
-  border-bottom: 1px solid #e6e6e6;
-  padding-bottom: 4px;
+.form-group label {
+    display: block;
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 4px;
 }
-
-.prompt-list { list-style: none; padding: 0; margin: 0; }
-.prompt-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 8px;
-  background: #fff;
-  border: 1px solid #eee;
-  border-radius: 8px;
-  margin-bottom: 6px;
+.input-with-action {
+    display: flex;
+    gap: 4px;
 }
-
-.prompt-title { font-weight: 500; }
-
-.row-actions button {
-  margin-left: 6px;
+.input-with-action input {
+    flex: 1;
 }
-
-
-/* Emoji buttons look better square and subtle */
-.row-actions button.edit,
-.row-actions button.delete {
-  width: 32px;
-  height: 32px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  line-height: 1;
+.type-toggle {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    font-size: 14px;
+    margin-bottom: 4px;
 }
-
-/* Remove any leftover spacing for the removed copy button */
-.row-actions button { margin-left: 6px; }
-
-
-/* --- Alignment fix for emoji action buttons --- */
-.prompt-row {
-  display: flex;
-  align-items: center;     /* vertical center everything */
-  gap: 8px;
+.llm-config-row {
+    display: flex;
+    gap: 8px;
 }
-
-.prompt-title {
-  flex: 1 1 auto;          /* take remaining width; pushes actions to the right */
-  display: block;
+.llm-config-row > * {
+    flex: 1;
 }
-
-.row-actions {
-  display: inline-flex;     /* keep buttons on the same baseline container */
-  align-items: center;      /* vertical center inside the container */
-  gap: 6px;
-  height: 32px;             /* match button height to avoid jitter */
+#toggleSettings {
+    background: transparent;
+    color: #555;
+    border: 1px solid #ddd;
+    font-size: 12px;
+    padding: 4px 8px;
 }
-
-.row-actions button {
-  appearance: none;
-  -webkit-appearance: none;
-  border: none;
-  background: transparent;
-  padding: 0;
-  margin: 0;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  line-height: 1;          /* prevent extra vertical space */
-  font-size: 18px;         /* consistent emoji size */
-  transform: translateY(0);/* ensure no subpixel shift */
-}
-
-.row-actions button.edit { /* optional subtle color cue */
-  filter: hue-rotate(0deg) saturate(1);
-}
-
-.row-actions button.delete {
-  filter: hue-rotate(0deg) saturate(1);
-}
-
-
-/* --- Offset actions 32px from the right, keep vertical center --- */
-.prompt-row {
-  position: relative;
-  padding-right: 54px; /* room for 2x32px buttons + gap */
-}
-
-.row-actions {
-  position: absolute;
-  right: 0px;          /* shift left ~32px from the card edge */
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-/* Subtle hover affordance */
-.row-actions button {
-  border-radius: 50%;
-  transition: background-color .15s ease, transform .12s ease;
-}
-.row-actions button:hover {
-  background-color: rgba(0,0,0,0.06);
-  transform: translateY(0) scale(1.06);
-}
-.row-actions button:active {
-  transform: translateY(0) scale(0.98);
+#toggleSettings:hover {
+    background: #eee;
 }

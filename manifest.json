@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Universal Prompt Saver",
-  "version": "1.13",
+  "version": "1.14",
   "description": "Save prompts and insert them anywhere with a right-click.",
   "permissions": [
     "contextMenus",
@@ -9,6 +9,10 @@
     "scripting",
     "activeTab",
     "unlimitedStorage"
+  ],
+  "host_permissions": [
+    "https://api.openai.com/*",
+    "https://generativelanguage.googleapis.com/*"
   ],
   "background": {
     "service_worker": "background.js"
