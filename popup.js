@@ -9,9 +9,11 @@ const exportPrompts = document.getElementById('exportPrompts');
 const importPrompts = document.getElementById('importPrompts');
 const importFile = document.getElementById('importFile');
 const folderSuggestions = document.getElementById('folderSuggestions');
+const searchPromptsInput = document.getElementById('searchPrompts');
 
 const DEFAULT_FOLDER = 'Ungrouped';
 
+let allPrompts = [];       // Cache for search
 let editingIndex = null;   // null means "creating", number means "editing existing"
 
 const normalizeFolder = (f) => {
@@ -27,6 +29,16 @@ function normalizePrompt(p) {
     prompt: (p.prompt || ''),
     folder: normalizeFolder(p.folder)
   };
+}
+
+function filterPrompts(prompts, query) {
+  if (!query) return prompts;
+  const lowerQuery = query.toLowerCase();
+  return prompts.filter(p => {
+    const titleMatch = (p.title || '').toLowerCase().includes(lowerQuery);
+    const bodyMatch = (p.prompt || '').toLowerCase().includes(lowerQuery);
+    return titleMatch || bodyMatch;
+  });
 }
 
 function groupByFolder(prompts) {
@@ -100,20 +112,23 @@ function renderPrompts(prompts) {
     groupedList.appendChild(section);
   });
 
-  refreshFolderSuggestions(prompts);
+  refreshFolderSuggestions(allPrompts);
 }
 
 function loadPrompts() {
   chrome.storage.local.get({ prompts: [] }, (data) => {
-    const list = (Array.isArray(data.prompts) ? data.prompts : []).map(normalizePrompt);
-    renderPrompts(list);
+    allPrompts = (Array.isArray(data.prompts) ? data.prompts : []).map(normalizePrompt);
+    renderPrompts(allPrompts);
   });
 }
 
 function savePrompts(list) {
   const normalized = list.map(normalizePrompt);
   chrome.storage.local.set({ prompts: normalized }, () => {
-    renderPrompts(normalized);
+    allPrompts = normalized;
+    const query = searchPromptsInput ? searchPromptsInput.value : '';
+    const filtered = filterPrompts(allPrompts, query);
+    renderPrompts(filtered);
     chrome.runtime.sendMessage({ type: 'updatePrompts', prompts: normalized });
   });
 }
@@ -188,6 +203,14 @@ function deletePrompt(p) {
 }
 
 savePromptBtn.addEventListener('click', handleSaveClick);
+
+if (searchPromptsInput) {
+  searchPromptsInput.addEventListener('input', (e) => {
+    const query = e.target.value;
+    const filtered = filterPrompts(allPrompts, query);
+    renderPrompts(filtered);
+  });
+}
 
 exportPrompts.addEventListener('click', () => {
   chrome.storage.local.get({ prompts: [] }, (data) => {

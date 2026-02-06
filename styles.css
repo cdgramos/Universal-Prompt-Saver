@@ -148,6 +148,10 @@ button:hover {
   margin-bottom: 12px;
 }
 
+.search-container {
+  margin-bottom: 15px;
+}
+
 .folder-section { margin: 8px 0 12px; }
 .folder-header {
   font-size: 13px;
