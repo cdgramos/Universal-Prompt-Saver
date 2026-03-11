@@ -81,3 +81,10 @@ The code explicitly checks `location.hostname` against a regex (e.g., `jira`, `c
 *   **Adding a new Token:** Update the `expandTokens` function in `background.js`.
 *   **Adding a Markdown-aware site:** Update the regex check inside the injected function in `background.js`.
 *   **Changing Storage:** If migrating schema, ensure backward compatibility or a migration script, as `unlimitedStorage` allows users to store large amounts of data.
+
+## 6. General Rules
+
+*   **Documentation:** Always check if code changes impact the `README.md` and `AGENTS.md`. If they do, update the Readme and Agents to reflect new features, setup steps, or any other useful common information. If the update is purely internal (refactoring), do not touch the Readme.
+*   **Unused Code:** Always remove unused imports, variables, functions.
+*   **Testing:** Thoroughly test all code changes before submitting to ensure existing functionality remains intact.
+*   **Atomic Commits:** Keep commits clear, focused, and atomic. Do not bundle unrelated changes together.
